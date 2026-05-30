@@ -231,7 +231,14 @@ C:\Users\怎样都能钩中你\AppData\Roaming\Docker\settings-store.json
 }
 ```
 
-说明：Docker Desktop 日志确认实际读取到了 `CustomWslDistroDir` 和 `DataFolder`，并将 `wslDataFolder` 指向 `F:\DockerDesktop\wsl`。
+说明：Docker Desktop 4.72.0 日志确认实际读取到了 `CustomWslDistroDir` 和 `DataFolder`，并将运行时设置里的 `wslDataFolder` 指向 `F:\DockerDesktop\wsl`。
+
+命名格式说明：
+
+- `CustomWslDistroDir` 和 `DataFolder` 是大写开头的 PascalCase。
+- `customWslDistroDir` 和 `dataFolder` 是小写开头的 camelCase，也常叫“小驼峰”。
+- 小驼峰的意思是第一个单词首字母小写，后续单词首字母大写，例如 `customWslDistroDir`。
+- 这次以 Docker Desktop 日志为准，保留 `CustomWslDistroDir` 和 `DataFolder`，不使用小驼峰字段，避免配置键名不匹配。
 
 ## 停止卡住的 Docker 进程
 
