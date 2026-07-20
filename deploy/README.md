@@ -1,6 +1,6 @@
-# AgentX 部署指南
+# NexaMind 部署指南
 
-AgentX 提供统一的 Docker 部署解决方案，支持一键启动多种环境配置。
+NexaMind 提供统一的 Docker 部署解决方案，支持一键启动多种环境配置。
 
 ## 🚀 快速开始
 
@@ -68,11 +68,11 @@ cd deploy
 ## 👤 默认账号
 
 ### 管理员账号
-- **邮箱**: admin@agentx.ai
+- **邮箱**: admin@nexamind.local
 - **密码**: admin123
 
 ### 测试账号 (仅开发环境)
-- **邮箱**: test@agentx.ai  
+- **邮箱**: test@nexamind.local
 - **密码**: test123
 
 ## ⚙️ 配置文件说明
@@ -100,8 +100,8 @@ docker compose ps
 docker compose logs -f
 
 # 查看特定服务日志
-docker compose logs -f agentx-backend
-docker compose logs -f agentx-frontend
+docker compose logs -f nexamind-backend
+docker compose logs -f nexamind-frontend
 ```
 
 ### 重启服务
@@ -110,7 +110,7 @@ docker compose logs -f agentx-frontend
 docker compose restart
 
 # 重启特定服务
-docker compose restart agentx-backend
+docker compose restart nexamind-backend
 ```
 
 ### 停止服务
@@ -135,10 +135,10 @@ docker compose up -d --build
 ### 数据备份
 ```bash
 # 备份数据库
-docker exec agentx-postgres pg_dump -U agentx_user agentx > backup.sql
+docker exec nexamind-postgres pg_dump -U nexamind_user nexamind > backup.sql
 
 # 恢复数据库
-docker exec -i agentx-postgres psql -U agentx_user agentx < backup.sql
+docker exec -i nexamind-postgres psql -U nexamind_user nexamind < backup.sql
 ```
 
 ## 🔧 故障排查
@@ -169,13 +169,13 @@ docker compose logs postgres
 
 验证数据库连接：
 ```bash
-docker exec agentx-postgres pg_isready -U agentx_user
+docker exec nexamind-postgres pg_isready -U nexamind_user
 ```
 
 #### 3. 服务启动失败
 查看详细错误日志：
 ```bash
-docker compose logs agentx-backend
+docker compose logs nexamind-backend
 ```
 
 检查配置文件语法：
@@ -207,7 +207,7 @@ docker compose config
 ### 生产环境必须修改的配置
 - 数据库密码：`DB_PASSWORD`
 - JWT密钥：`JWT_SECRET`
-- 管理员密码：`AGENTX_ADMIN_PASSWORD`
+- 管理员密码：`NEXAMIND_ADMIN_PASSWORD`
 - 消息队列密码：`RABBITMQ_PASSWORD`
 
 ### 网络安全
@@ -220,7 +220,7 @@ docker compose config
 如遇到问题，请检查：
 1. [故障排查文档](../docs/deployment/TROUBLESHOOTING.md)
 2. [项目README](../README.md)
-3. [GitHub Issues](https://github.com/your-repo/AgentX/issues)
+3. [GitHub Issues](https://github.com/letmeseeseeee/nexamind/issues)
 
 ---
 

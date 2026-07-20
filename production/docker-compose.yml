@@ -1,8 +1,8 @@
-# AgentX 生产环境 Docker Compose 配置
+# NexaMind 生产环境 Docker Compose 配置
 # 使用预构建镜像，无需源码
 
 networks:
-  agentx-network:
+  nexamind-network:
     driver: bridge
 
 volumes:
@@ -17,21 +17,21 @@ services:
   # PostgreSQL 数据库
   postgres:
     image: postgres:15-alpine
-    container_name: agentx-postgres
+    container_name: nexamind-postgres
     environment:
-      POSTGRES_DB: ${DB_NAME:-agentx}
-      POSTGRES_USER: ${DB_USER:-agentx_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-agentx_pass}
+      POSTGRES_DB: ${DB_NAME:-nexamind}
+      POSTGRES_USER: ${DB_USER:-nexamind_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nexamind_pass}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
-      - agentx-network
+      - nexamind-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-agentx_user} -d ${DB_NAME:-agentx}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-nexamind_user} -d ${DB_NAME:-nexamind}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,7 +39,7 @@ services:
   # RabbitMQ 消息队列
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
-    container_name: agentx-rabbitmq
+    container_name: nexamind-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
@@ -49,7 +49,7 @@ services:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     networks:
-      - agentx-network
+      - nexamind-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
@@ -57,18 +57,18 @@ services:
       timeout: 10s
       retries: 5
 
-  # AgentX 应用服务（使用预构建镜像）
-  agentx:
-    image: ghcr.io/lucky-aeon/agentx:${IMAGE_TAG:-latest}
-    container_name: agentx-app
+  # NexaMind 应用服务（使用预构建镜像）
+  nexamind:
+    image: ghcr.io/letmeseeseeee/nexamind:${IMAGE_TAG:-latest}
+    container_name: nexamind-app
     network_mode: "host"
     environment:
       # 数据库配置 - Host网络模式下通过localhost访问
       DB_HOST: localhost
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-agentx}
-      DB_USER: ${DB_USER:-agentx_user}
-      DB_PASSWORD: ${DB_PASSWORD:-agentx_pass}
+      DB_NAME: ${DB_NAME:-nexamind}
+      DB_USER: ${DB_USER:-nexamind_user}
+      DB_PASSWORD: ${DB_PASSWORD:-nexamind_pass}
       
       # 应用配置
       SERVER_PORT: 8088
@@ -81,13 +81,13 @@ services:
       SHOW_SQL: false
       
       # 用户配置 - 使用直接环境变量注入，确保配置能正确读取
-      AGENTX_ADMIN_EMAIL: ${AGENTX_ADMIN_EMAIL:-admin@agentx.ai}
-      AGENTX_ADMIN_PASSWORD: ${AGENTX_ADMIN_PASSWORD:-admin123}
-      AGENTX_ADMIN_NICKNAME: ${AGENTX_ADMIN_NICKNAME:-AgentX管理员}
-      AGENTX_TEST_ENABLED: ${AGENTX_TEST_ENABLED:-false}
-      AGENTX_TEST_EMAIL: ${AGENTX_TEST_EMAIL:-test@agentx.ai}
-      AGENTX_TEST_PASSWORD: ${AGENTX_TEST_PASSWORD:-test123}
-      AGENTX_TEST_NICKNAME: ${AGENTX_TEST_NICKNAME:-测试用户}
+      NEXAMIND_ADMIN_EMAIL: ${NEXAMIND_ADMIN_EMAIL:-admin@nexamind.local}
+      NEXAMIND_ADMIN_PASSWORD: ${NEXAMIND_ADMIN_PASSWORD:-admin123}
+      NEXAMIND_ADMIN_NICKNAME: ${NEXAMIND_ADMIN_NICKNAME:-NexaMind管理员}
+      NEXAMIND_TEST_ENABLED: ${NEXAMIND_TEST_ENABLED:-false}
+      NEXAMIND_TEST_EMAIL: ${NEXAMIND_TEST_EMAIL:-test@nexamind.local}
+      NEXAMIND_TEST_PASSWORD: ${NEXAMIND_TEST_PASSWORD:-test123}
+      NEXAMIND_TEST_NICKNAME: ${NEXAMIND_TEST_NICKNAME:-测试用户}
       
       # 消息队列配置 - Host网络模式下通过localhost访问
       RABBITMQ_HOST: localhost
@@ -106,7 +106,7 @@ services:
       FILE_STORAGE_PATH: /app/storage
       
       # Docker连接配置
-      AGENTX_CONTAINER_DOCKER_HOST: unix:///var/run/docker.sock
+      NEXAMIND_CONTAINER_DOCKER_HOST: unix:///var/run/docker.sock
       
     volumes:
       - storage-data:/app/storage

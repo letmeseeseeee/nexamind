@@ -130,6 +130,10 @@ logs/
 .env
 .env.local
 
+# Local assistant settings and private resume drafts
+**/.claude/settings.local.json
+docs/resume-*.txt
+
 # System Files
 .DS_Store
 Thumbs.db

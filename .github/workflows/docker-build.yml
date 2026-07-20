@@ -1,4 +1,4 @@
-name: Build and Publish AgentX Docker Image
+name: Build and Publish NexaMind Docker Image
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
       # Generate lowercase image name
       - name: Set image name
         run: |
-          echo "IMAGE_NAME=lucky-aeon/agentx" >> $GITHUB_ENV
+          echo "IMAGE_NAME=letmeseeseeee/nexamind" >> $GITHUB_ENV
           echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
 
       # Install the cosign tool except on PR
@@ -65,7 +65,7 @@ jobs:
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
-      - name: Build and push AgentX Docker image
+      - name: Build and push NexaMind Docker image
         id: build-and-push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
@@ -105,8 +105,8 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           port: ${{ secrets.PROD_PORT }}
           script: |
-            echo "🚀 开始自动部署 AgentX ${{ env.TAG }}"
-            cd /opt/agentx
+            echo "🚀 开始自动部署 NexaMind ${{ env.TAG }}"
+            cd /opt/nexamind
             chmod +x scripts/deploy.sh
             ./scripts/deploy.sh ${{ env.TAG }}
             echo "✅ 自动部署完成"

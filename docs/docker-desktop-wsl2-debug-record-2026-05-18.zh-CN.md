@@ -2,9 +2,9 @@
 
 日期：2026-05-18 至 2026-05-19
 
-项目路径：`F:\ai_agent\AgentX`
+项目路径：`F:\ai_agent\nexamind`
 
-GitHub 仓库：`https://github.com/lucky-aeon/AgentX`
+当前 GitHub 仓库：`https://github.com/letmeseeseeee/nexamind`
 
 ## 问题概述
 
@@ -26,8 +26,8 @@ Docker Engine is the underlying technology that runs containers
 
 ## 用户目标
 
-- 将 AgentX 项目确认上传到 GitHub。
-- 修复本机 Docker Desktop，保证能用于 AgentX 的 Docker 开发。
+- 将 NexaMind 项目确认上传到 GitHub。
+- 修复本机 Docker Desktop，保证能用于 NexaMind 的 Docker 开发。
 - 尽量不要占用 `C:` 盘，把 Docker 镜像、容器、卷等大文件迁移到 `F:` 盘。
 - 保留完整调试记录。
 
@@ -46,8 +46,8 @@ git log --oneline --decorate -5
 ```text
 ## master...origin/master
 
-origin  https://github.com/lucky-aeon/AgentX.git (fetch)
-origin  https://github.com/lucky-aeon/AgentX.git (push)
+origin  https://github.com/letmeseeseeee/nexamind.git (fetch)
+origin  https://github.com/letmeseeseeee/nexamind.git (push)
 
 3ee7b0b6 (HEAD -> master, origin/master, origin/HEAD) fix: 前端markdown乱码问题
 ```
@@ -55,7 +55,7 @@ origin  https://github.com/lucky-aeon/AgentX.git (push)
 说明：
 
 - 本地分支为 `master`。
-- 远端为 `https://github.com/lucky-aeon/AgentX.git`。
+- 远端为 `https://github.com/letmeseeseeee/nexamind.git`。
 - 本地 `HEAD` 与 `origin/master` 指向同一个提交。
 
 尝试执行：
@@ -525,21 +525,21 @@ This message shows that your installation appears to be working correctly.
 - `F:\DockerDesktop`：已补充当前用户、SYSTEM、Administrators 完全控制权限
 - `hello-world` 容器测试：通过
 
-## AgentX Docker Compose 校验
+## NexaMind Docker Compose 校验
 
 执行：
 
 ```powershell
-cd F:\ai_agent\AgentX\deploy
+cd F:\ai_agent\NexaMind\deploy
 docker compose --env-file .env -f docker-compose.yml --profile local config --quiet
 ```
 
 结果：无输出，退出码为 0，表示 Compose 配置解析通过。
 
-## 启动 AgentX
+## 启动 NexaMind
 
 ```powershell
-cd F:\ai_agent\AgentX\deploy
+cd F:\ai_agent\NexaMind\deploy
 .\start.bat
 ```
 

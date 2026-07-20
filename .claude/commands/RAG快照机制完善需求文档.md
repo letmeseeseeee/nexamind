@@ -3,7 +3,7 @@
 ## 业务背景
 
 ### RAG系统架构概述
-AgentX的RAG（知识库）系统采用分层发布机制：
+NexaMind的RAG（知识库）系统采用分层发布机制：
 1. **原始RAG数据集**：用户创建和维护的工作数据，可随时修改
 2. **版本快照**：发布到市场的固化版本，内容不可变
 3. **用户安装快照**：用户从市场安装的个人副本，完全隔离
@@ -46,7 +46,7 @@ AgentX的RAG（知识库）系统采用分层发布机制：
 
 ### 1. 数据模型扩展
 
-#### UserRagDTO (`/AgentX/src/main/java/org/xhy/application/rag/dto/UserRagDTO.java`)
+#### UserRagDTO (`/NexaMind/src/main/java/org/xhy/application/rag/dto/UserRagDTO.java`)
 **修改内容**：
 - 添加`installType`字段
 - 添加`isReferenceType()`和`isSnapshotType()`判断方法
@@ -58,14 +58,14 @@ AgentX的RAG（知识库）系统采用分层发布机制：
 
 ### 2. 快照创建机制
 
-#### RagPublishAppService (`/AgentX/src/main/java/org/xhy/application/rag/RagPublishAppService.java`)
+#### RagPublishAppService (`/NexaMind/src/main/java/org/xhy/application/rag/RagPublishAppService.java`)
 **需要完善的功能**：
 - 发布版本时创建完整快照
 - 复制所有文件到`rag_version_files`表
 - 复制所有文档单元到`rag_version_documents`表
 - 复制相关配置和元数据
 
-#### RagVersionDomainService (`/AgentX/src/main/java/org/xhy/domain/rag/service/RagVersionDomainService.java`)
+#### RagVersionDomainService (`/NexaMind/src/main/java/org/xhy/domain/rag/service/RagVersionDomainService.java`)
 **需要添加的方法**：
 - `createCompleteSnapshot()` - 创建完整版本快照
 - `copyFilesToVersion()` - 复制文件快照
@@ -73,7 +73,7 @@ AgentX的RAG（知识库）系统采用分层发布机制：
 
 ### 3. 快照安装机制
 
-#### UserRagDomainService (`/AgentX/src/main/java/org/xhy/domain/rag/service/UserRagDomainService.java`)
+#### UserRagDomainService (`/NexaMind/src/main/java/org/xhy/domain/rag/service/UserRagDomainService.java`)
 **需要完善的方法**：
 - `installRag()` - 安装SNAPSHOT类型时创建用户专属快照
 - 添加快照数据复制逻辑
@@ -86,7 +86,7 @@ AgentX的RAG（知识库）系统采用分层发布机制：
 
 ### 4. 数据访问优化
 
-#### RagDataAccessService (`/AgentX/src/main/java/org/xhy/domain/rag/service/RagDataAccessService.java`)
+#### RagDataAccessService (`/NexaMind/src/main/java/org/xhy/domain/rag/service/RagDataAccessService.java`)
 **需要完善的方法**：
 ```java
 // 当前返回空列表，需要实现
@@ -101,12 +101,12 @@ private List<DocumentUnitEntity> getSnapshotDocumentsByOriginalFile(String versi
 
 ### 5. 数据转换逻辑修复
 
-#### UserRagAssembler (`/AgentX/src/main/java/org/xhy/application/rag/assembler/UserRagAssembler.java`)
+#### UserRagAssembler (`/NexaMind/src/main/java/org/xhy/application/rag/assembler/UserRagAssembler.java`)
 **需要添加的方法**：
 - `enrichWithReferenceInfo()` - 处理REFERENCE类型，获取原始RAG信息
 - `enrichWithSnapshotInfo()` - 处理SNAPSHOT类型，使用快照数据
 
-#### RagMarketAppService (`/AgentX/src/main/java/org/xhy/application/rag/RagMarketAppService.java`)
+#### RagMarketAppService (`/NexaMind/src/main/java/org/xhy/application/rag/RagMarketAppService.java`)
 **需要修改的方法**：
 - `getUserInstalledRags()` - 根据installType选择不同的数据丰富策略
 - `getInstalledRagDetail()` - 同样按类型处理
@@ -136,7 +136,7 @@ private List<DocumentUnitEntity> getSnapshotDocumentsByOriginalFile(String versi
 - 确保返回的`UserRagDTO`包含正确的快照数据
 - 区分不同安装类型的数据来源
 
-**前端类型定义** (`/agentx-frontend-plus/types/rag-publish.ts`)：
+**前端类型定义** (`/nexamind-frontend/types/rag-publish.ts`)：
 - 添加`installType`字段定义
 - 更新相关接口类型
 

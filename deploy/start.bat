@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM AgentX一键启动脚本 - Windows版本
+REM NexaMind一键启动脚本 - Windows版本
 REM 支持多种部署模式：local/production/external
 
 REM 颜色定义 (Windows ANSI转义序列)
@@ -23,7 +23,7 @@ echo %GREEN%            智能AI助手平台 - 统一部署工具%NC%
 echo %BLUE%========================================================%NC%
 echo.
 
-echo %YELLOW%AgentX 开发环境启动%NC%
+echo %YELLOW%NexaMind 开发环境启动%NC%
 echo 本脚本适用于开发者进行本地开发
 echo 如需生产环境部署，请参考: docs/deployment/PRODUCTION_DEPLOY.md
 echo.
@@ -80,7 +80,7 @@ echo.
 
 REM 启动服务
 :start_services
-echo %BLUE%启动AgentX服务...%NC%
+echo %BLUE%启动NexaMind服务...%NC%
 echo 部署模式: %MODE%
 echo Docker Compose Profile: %PROFILE%
 echo.
@@ -106,7 +106,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo %GREEN%🎉 AgentX启动完成！%NC%
+echo %GREEN%🎉 NexaMind启动完成！%NC%
 echo.
 echo %BLUE%服务访问地址:%NC%
 echo   前端: http://localhost:3000
@@ -119,12 +119,12 @@ if "%MODE%"=="dev" (
 
 echo.
 echo %BLUE%默认登录账号:%NC%
-echo   管理员: admin@agentx.ai / admin123
+echo   管理员: admin@nexamind.local / admin123
 
 if "%MODE%"=="local" (
-    echo   测试用户: test@agentx.ai / test123
+    echo   测试用户: test@nexamind.local / test123
 ) else if "%MODE%"=="dev" (
-    echo   测试用户: test@agentx.ai / test123
+    echo   测试用户: test@nexamind.local / test123
 )
 
 echo.

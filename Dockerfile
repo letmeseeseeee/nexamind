@@ -1,4 +1,4 @@
-# AgentX 一体化镜像
+# NexaMind 一体化镜像
 # 包含前端、后端、数据库、消息队列的完整系统
 
 # 第一阶段：构建后端
@@ -6,17 +6,17 @@ FROM maven:3.9.6-eclipse-temurin-17 AS backend-builder
 WORKDIR /build
 
 # 复制后端代码
-COPY AgentX/pom.xml ./
+COPY NexaMind/pom.xml ./
 RUN mvn dependency:go-offline -B
-COPY AgentX/src ./src
+COPY NexaMind/src ./src
 RUN mvn clean package -DskipTests
 
 # 第二阶段：构建前端
 FROM node:18-alpine AS frontend-builder
 WORKDIR /build
-COPY agentx-frontend-plus/package*.json ./
+COPY nexamind-frontend/package*.json ./
 RUN npm install --legacy-peer-deps
-COPY agentx-frontend-plus/ .
+COPY nexamind-frontend/ .
 RUN npm run build
 
 # 第三阶段：运行时镜像 - 基于pgvector镜像
@@ -55,14 +55,14 @@ COPY --from=frontend-builder /build/package.json /app/frontend/
 COPY --from=frontend-builder /build/node_modules /app/frontend/node_modules
 
 # 复制配置文件和SQL初始化脚本
-COPY AgentX/src/main/resources/application.yml /app/application.yml
+COPY NexaMind/src/main/resources/application.yml /app/application.yml
 COPY docs/sql/01_init.sql /app/init.sql
 
 # API网关已移除 - 用户可选择独立部署
 # 如需API网关功能，请运行：docker run -d -p 8081:8081 ghcr.io/lucky-aeon/api-premium-gateway:latest
 
 # 准备前端源码（用于构建过程中的文件复制）
-COPY agentx-frontend-plus/ /app/frontend-src
+COPY nexamind-frontend/ /app/frontend-src
 
 # 创建数据库初始化脚本
 RUN echo '#!/bin/bash\n\
@@ -81,13 +81,13 @@ done\n\
 \n\
 # 创建用户和数据库\n\
 echo "👤 创建数据库用户..."\n\
-sudo -u postgres psql -c "CREATE USER agentx_user WITH SUPERUSER PASSWORD '\''agentx_pass'\'';" 2>/dev/null || echo "用户已存在"\n\
+sudo -u postgres psql -c "CREATE USER nexamind_user WITH SUPERUSER PASSWORD '\''nexamind_pass'\'';" 2>/dev/null || echo "用户已存在"\n\
 \n\
 echo "🏗️ 创建数据库..."\n\
-sudo -u postgres createdb -O agentx_user agentx 2>/dev/null || echo "数据库已存在"\n\
+sudo -u postgres createdb -O nexamind_user nexamind 2>/dev/null || echo "数据库已存在"\n\
 \n\
 echo "📊 执行初始化SQL..."\n\
-sudo -u postgres psql -d agentx -f /app/init.sql 2>/dev/null || echo "SQL执行完成"\n\
+sudo -u postgres psql -d nexamind -f /app/init.sql 2>/dev/null || echo "SQL执行完成"\n\
 \n\
 echo "✅ 数据库初始化完成"\n\
 ' > /app/init-db.sh && chmod +x /app/init-db.sh
@@ -102,7 +102,7 @@ echo "⏳ 等待依赖服务启动..."\n\
 if [ "$DB_HOST" = "localhost" ]; then\n\
     echo "⏳ 等待PostgreSQL服务..."\n\
     for i in {1..60}; do\n\
-        if pg_isready -h localhost -p 5432 -U agentx_user -d agentx; then\n\
+        if pg_isready -h localhost -p 5432 -U nexamind_user -d nexamind; then\n\
             echo "✅ PostgreSQL服务已就绪"\n\
             break\n\
         fi\n\
@@ -158,7 +158,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
-echo "🚀 AgentX智能启动脚本"\n\
+echo "🚀 NexaMind智能启动脚本"\n\
 echo "================================"\n\
 \n\
 # 检测外部服务配置\n\
@@ -193,7 +193,7 @@ fi\n\
 \n\
 # 动态生成supervisor配置\n\
 echo "📝 生成动态服务配置..."\n\
-cat > /etc/supervisor/conf.d/agentx.conf << EOF\n\
+cat > /etc/supervisor/conf.d/nexamind.conf << EOF\n\
 [supervisord]\n\
 nodaemon=true\n\
 user=root\n\
@@ -223,7 +223,7 @@ if [ "$USE_EXTERNAL_DB" = false ]; then\n\
         echo "host all all 0.0.0.0/0 scram-sha-256" >> /var/lib/postgresql/15/main/pg_hba.conf\n\
     fi\n\
     \n\
-    cat >> /etc/supervisor/conf.d/agentx.conf << EOF\n\
+    cat >> /etc/supervisor/conf.d/nexamind.conf << EOF\n\
 [program:postgresql]\n\
 command=/usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main\n\
 user=postgres\n\
@@ -262,7 +262,7 @@ default_pass = guest\n\
 loopback_users = none\n\
 RABBIT_EOF\n\
     \n\
-    cat >> /etc/supervisor/conf.d/agentx.conf << EOF\n\
+    cat >> /etc/supervisor/conf.d/nexamind.conf << EOF\n\
 [program:rabbitmq]\n\
 command=/usr/lib/rabbitmq/bin/rabbitmq-server\n\
 user=rabbitmq\n\
@@ -281,7 +281,7 @@ fi\n\
 \n\
 # 数据库初始化服务（仅在使用内置数据库时执行）\n\
 if [ "$USE_EXTERNAL_DB" = false ]; then\n\
-    cat >> /etc/supervisor/conf.d/agentx.conf << EOF\n\
+    cat >> /etc/supervisor/conf.d/nexamind.conf << EOF\n\
 [program:db-init]\n\
 command=/app/init-db.sh\n\
 autostart=true\n\
@@ -298,7 +298,7 @@ fi\n\
 \n\
 # 后端服务配置（必需）\n\
 echo "✅ 启用后端服务"\n\
-cat >> /etc/supervisor/conf.d/agentx.conf << EOF\n\
+cat >> /etc/supervisor/conf.d/nexamind.conf << EOF\n\
 [program:backend]\n\
 command=/app/wait-for-services.sh java -jar /app/backend.jar --spring.profiles.active=docker\n\
 directory=/app\n\
@@ -307,7 +307,7 @@ autorestart=true\n\
 priority=30\n\
 startsecs=30\n\
 startretries=5\n\
-environment=DB_HOST="$DB_HOST",DB_PORT="${DB_PORT:-5432}",DB_NAME="${DB_NAME:-agentx}",DB_USER="${DB_USER:-agentx_user}",DB_PASSWORD="${DB_PASSWORD:-agentx_pass}",RABBITMQ_HOST="$RABBITMQ_HOST",RABBITMQ_PORT="${RABBITMQ_PORT:-5672}",RABBITMQ_USERNAME="${RABBITMQ_USERNAME:-guest}",RABBITMQ_PASSWORD="${RABBITMQ_PASSWORD:-guest}",SERVER_PORT="8088"\n\
+environment=DB_HOST="$DB_HOST",DB_PORT="${DB_PORT:-5432}",DB_NAME="${DB_NAME:-nexamind}",DB_USER="${DB_USER:-nexamind_user}",DB_PASSWORD="${DB_PASSWORD:-nexamind_pass}",RABBITMQ_HOST="$RABBITMQ_HOST",RABBITMQ_PORT="${RABBITMQ_PORT:-5672}",RABBITMQ_USERNAME="${RABBITMQ_USERNAME:-guest}",RABBITMQ_PASSWORD="${RABBITMQ_PASSWORD:-guest}",SERVER_PORT="8088"\n\
 stdout_logfile=/tmp/backend.log\n\
 stderr_logfile=/tmp/backend.error.log\n\
 \n\
@@ -315,7 +315,7 @@ EOF\n\
 \n\
 # 前端服务配置（必需）\n\
 echo "✅ 启用前端服务"\n\
-cat >> /etc/supervisor/conf.d/agentx.conf << EOF\n\
+cat >> /etc/supervisor/conf.d/nexamind.conf << EOF\n\
 [program:frontend]\n\
 command=npm start\n\
 directory=/app/frontend\n\

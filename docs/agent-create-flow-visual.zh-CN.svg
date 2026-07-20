@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .title { font: 700 44px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #102033; }
+      .subtitle { font: 400 24px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #526173; }
+      .section { font: 700 28px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #102033; }
+      .small { font: 400 20px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #4a5666; }
+      .tiny { font: 400 17px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #5e6b7c; }
+      .code { font: 500 17px Consolas, "Microsoft YaHei", monospace; fill: #384557; }
+      .card { fill: #ffffff; stroke: #d8e0ec; stroke-width: 2; rx: 18; }
+      .lane { fill: #eaf2ff; stroke: #bdd3f4; stroke-width: 2; rx: 18; }
+      .lane2 { fill: #eefaf4; stroke: #bfe6d0; stroke-width: 2; rx: 18; }
+      .lane3 { fill: #fff7e8; stroke: #f1d39d; stroke-width: 2; rx: 18; }
+      .lane4 { fill: #f4efff; stroke: #d6c4ff; stroke-width: 2; rx: 18; }
+      .pill { fill: #1d67f2; rx: 18; }
+      .pillText { font: 700 18px "Microsoft YaHei", Arial, sans-serif; fill: #ffffff; }
+      .arrow { stroke: #1d67f2; stroke-width: 4; fill: none; marker-end: url(#arrowHead); }
+      .softArrow { stroke: #7b8aa0; stroke-width: 3; fill: none; marker-end: url(#softArrowHead); stroke-dasharray: 7 7; }
+      .num { font: 700 22px Arial, sans-serif; fill: #ffffff; }
+      .numCircle { fill: #1d67f2; }
+      .warn { fill: #fff4de; stroke: #f0c66a; stroke-width: 2; rx: 16; }
+      .ok { fill: #eaf8ef; stroke: #9cd6b0; stroke-width: 2; rx: 16; }
+    </style>
+    <marker id="arrowHead" markerWidth="14" markerHeight="14" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#1d67f2"/>
+    </marker>
+    <marker id="softArrowHead" markerWidth="14" markerHeight="14" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#7b8aa0"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="1920"/>
+
+  <text x="54" y="82" class="title">Agent 创建流程速查图</text>
+  <text x="54" y="120" class="subtitle">从前端表单到后端落库、工作区绑定、计费扣费</text>
+  <rect x="54" y="148" width="972" height="2" fill="#dce4ef"/>
+
+  <rect x="54" y="176" width="972" height="128" class="card"/>
+  <text x="82" y="218" class="section">一句话理解</text>
+  <text x="82" y="256" class="small">前端收集 Agent 配置，POST /agents；后端用登录态确认用户，检查余额，</text>
+  <text x="82" y="286" class="small">保存 Agent，再创建工作区模型配置，最后扣费并返回 AgentDTO。</text>
+
+  <rect x="54" y="334" width="972" height="1080" class="card"/>
+  <text x="82" y="380" class="section">主流程</text>
+
+  <rect x="82" y="420" width="916" height="118" class="lane"/>
+  <circle cx="112" cy="455" r="18" class="numCircle"/><text x="106" y="463" class="num">1</text>
+  <text x="142" y="458" class="section">前端页面：/studio/new</text>
+  <text x="142" y="490" class="small">用户在 AgentFormModal 中填写名称、Prompt、欢迎语、工具、知识库、多模态开关。</text>
+  <text x="142" y="520" class="code">nexamind-frontend/app/(main)/studio/new/page.tsx</text>
+
+  <path d="M540 540 L540 590" class="arrow"/>
+
+  <rect x="82" y="592" width="916" height="118" class="lane"/>
+  <circle cx="112" cy="627" r="18" class="numCircle"/><text x="106" y="635" class="num">2</text>
+  <text x="142" y="630" class="section">前端组装请求</text>
+  <text x="142" y="662" class="small">把工具对象转成 toolIds，并组装 name、systemPrompt、knowledgeBaseIds 等字段。</text>
+  <text x="142" y="692" class="code">createAgentWithToast(agentData)</text>
+
+  <path d="M540 712 L540 762" class="arrow"/>
+
+  <rect x="82" y="764" width="916" height="118" class="lane"/>
+  <circle cx="112" cy="799" r="18" class="numCircle"/><text x="106" y="807" class="num">3</text>
+  <text x="142" y="802" class="section">API 封装：POST /agents</text>
+  <text x="142" y="834" class="small">httpClient 发送创建请求，统一返回 ApiResponse&lt;Agent&gt;。</text>
+  <text x="142" y="864" class="code">nexamind-frontend/lib/agent-service.ts</text>
+
+  <path d="M540 884 L540 934" class="arrow"/>
+
+  <rect x="82" y="936" width="916" height="118" class="lane2"/>
+  <circle cx="112" cy="971" r="18" class="numCircle"/><text x="106" y="979" class="num">4</text>
+  <text x="142" y="974" class="section">Controller 接收请求</text>
+  <text x="142" y="1006" class="small">@PostMapping + @Validated；从 UserContext 获取当前用户 ID。</text>
+  <text x="142" y="1036" class="code">PortalAgentController.createAgent()</text>
+
+  <path d="M540 1056 L540 1106" class="arrow"/>
+
+  <rect x="82" y="1108" width="916" height="118" class="lane3"/>
+  <circle cx="112" cy="1143" r="18" class="numCircle"/><text x="106" y="1151" class="num">5</text>
+  <text x="142" y="1146" class="section">应用服务：业务编排</text>
+  <text x="142" y="1178" class="small">创建计费上下文，先检查余额，再把 Request 转成 AgentEntity。</text>
+  <text x="142" y="1208" class="code">AgentAppService.createAgent()</text>
+
+  <path d="M540 1228 L540 1278" class="arrow"/>
+
+  <rect x="82" y="1280" width="916" height="118" class="lane4"/>
+  <circle cx="112" cy="1315" r="18" class="numCircle"/><text x="106" y="1323" class="num">6</text>
+  <text x="142" y="1318" class="section">领域层落库</text>
+  <text x="142" y="1350" class="small">AgentRepository.insert(agent)，MyBatis-Plus 自动生成 UUID。</text>
+  <text x="142" y="1380" class="code">AgentDomainService.createAgent()</text>
+
+  <path d="M540 1400 L540 1450" class="arrow"/>
+
+  <rect x="82" y="1452" width="916" height="118" class="lane4"/>
+  <circle cx="112" cy="1487" r="18" class="numCircle"/><text x="106" y="1495" class="num">7</text>
+  <text x="142" y="1490" class="section">自动加入工作区</text>
+  <text x="142" y="1522" class="small">创建 agent_workspace 记录，并写入默认 LLMModelConfig。</text>
+  <text x="142" y="1552" class="code">AgentWorkspaceEntity(agentId, userId, new LLMModelConfig())</text>
+
+  <path d="M540 1572 L540 1622" class="arrow"/>
+
+  <rect x="82" y="1624" width="916" height="118" class="lane3"/>
+  <circle cx="112" cy="1659" r="18" class="numCircle"/><text x="106" y="1667" class="num">8</text>
+  <text x="142" y="1662" class="section">扣费并返回</text>
+  <text x="142" y="1694" class="small">billingService.charge；AgentEntity 转 AgentDTO；前端成功后跳转 /studio。</text>
+  <text x="142" y="1724" class="code">AgentAssembler.toDTO(agent)</text>
+
+  <rect x="54" y="1442" width="972" height="0" fill="none"/>
+
+  <rect x="54" y="1772" width="972" height="108" class="warn"/>
+  <text x="82" y="1812" class="section">容易混淆的点</text>
+  <text x="82" y="1846" class="small">前端传了 modelConfig，但 CreateAgentRequest 没有接收它；创建时模型配置实际写入</text>
+  <text x="82" y="1876" class="small">agent_workspace 的默认 LLMModelConfig，后续再通过工作区模型配置接口设置。</text>
+
+  <rect x="54" y="1428" width="972" height="318" class="card"/>
+  <text x="82" y="1470" class="section">字段与表</text>
+  <rect x="82" y="1500" width="260" height="48" class="pill"/><text x="112" y="1531" class="pillText">agents 表</text>
+  <text x="370" y="1530" class="small">name / avatar / description / systemPrompt / welcomeMessage</text>
+  <text x="370" y="1560" class="small">toolIds / knowledgeBaseIds / toolPresetParams / multiModal / enabled</text>
+
+  <rect x="82" y="1590" width="260" height="48" class="pill"/><text x="112" y="1621" class="pillText">agent_workspace 表</text>
+  <text x="370" y="1620" class="small">agentId / userId / llmModelConfig</text>
+  <text x="370" y="1650" class="small">用于用户工作区关联和模型配置。</text>
+
+  <rect x="82" y="1680" width="260" height="48" class="pill"/><text x="112" y="1711" class="pillText">计费系统</text>
+  <text x="370" y="1710" class="small">创建前 checkBalance，创建后 charge。</text>
+
+  <text x="54" y="1900" class="tiny">源码速查：Controller -> AppService -> Assembler -> DomainService -> Entity -> Repository</text>
+</svg>

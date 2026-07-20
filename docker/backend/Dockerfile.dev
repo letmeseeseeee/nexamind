@@ -1,4 +1,4 @@
-# AgentX后端开发环境Dockerfile
+# NexaMind后端开发环境Dockerfile
 # 使用官方 Maven + JDK 17 基础镜像，避免容器内找不到 mvnw 的问题
 FROM maven:3.9-eclipse-temurin-17 AS dev
 
@@ -6,14 +6,14 @@ FROM maven:3.9-eclipse-temurin-17 AS dev
 WORKDIR /app
 
 # 仅复制 Maven 必要文件以利用构建缓存
-COPY AgentX/pom.xml ./
-COPY AgentX/.mvn ./.mvn
+COPY NexaMind/pom.xml ./
+COPY NexaMind/.mvn ./.mvn
 
 # 预下载依赖（go-offline），加速后续构建
 RUN mvn -B -e -Dmaven.test.skip=true dependency:go-offline
 
 # 复制源代码
-COPY AgentX/src ./src
+COPY NexaMind/src ./src
 
 # 创建日志和存储目录
 RUN mkdir -p logs storage

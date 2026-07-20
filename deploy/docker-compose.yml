@@ -1,10 +1,10 @@
-# AgentX统一Docker Compose配置
+# NexaMind统一Docker Compose配置
 # 支持通过环境变量控制不同部署模式：local/production/external
 
-name: agentx
+name: nexamind
 
 networks:
-  agentx-network:
+  nexamind-network:
     driver: bridge
 
 volumes:
@@ -22,12 +22,12 @@ services:
   # 仅在非external模式下启动
   postgres:
     image: pgvector/pgvector:pg15
-    container_name: agentx-postgres
+    container_name: nexamind-postgres
     profiles:
       - local
       - production
     environment:
-      POSTGRES_DB: ${DB_NAME:-agentx}
+      POSTGRES_DB: ${DB_NAME:-nexamind}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
@@ -37,10 +37,10 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
-      - agentx-network
+      - nexamind-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-agentx}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-nexamind}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,7 @@ services:
   # RabbitMQ消息队列服务
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
-    container_name: agentx-rabbitmq
+    container_name: nexamind-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
@@ -58,7 +58,7 @@ services:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     networks:
-      - agentx-network
+      - nexamind-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
@@ -66,17 +66,17 @@ services:
       timeout: 10s
       retries: 5
 
-  # AgentX后端服务
-  agentx-backend:
+  # NexaMind后端服务
+  nexamind-backend:
     build:
       context: ..
       dockerfile: docker/backend/Dockerfile${DOCKERFILE_SUFFIX:-}
-    container_name: agentx-backend
+    container_name: nexamind-backend
     environment:
       # 数据库配置
       DB_HOST: ${DB_HOST:-postgres}
       DB_PORT: ${DB_PORT:-5432}
-      DB_NAME: ${DB_NAME:-agentx}
+      DB_NAME: ${DB_NAME:-nexamind}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       
@@ -86,12 +86,12 @@ services:
       SHOW_SQL: ${SHOW_SQL:-true}
       
       # 默认用户配置
-      AGENTX_ADMIN_EMAIL: ${AGENTX_ADMIN_EMAIL:-admin@agentx.ai}
-      AGENTX_ADMIN_PASSWORD: ${AGENTX_ADMIN_PASSWORD:-admin123}
-      AGENTX_ADMIN_NICKNAME: ${AGENTX_ADMIN_NICKNAME:-AgentX管理员}
-      AGENTX_TEST_ENABLED: ${AGENTX_TEST_ENABLED:-true}
-      AGENTX_TEST_EMAIL: ${AGENTX_TEST_EMAIL:-test@agentx.ai}
-      AGENTX_TEST_PASSWORD: ${AGENTX_TEST_PASSWORD:-test123}
+      NEXAMIND_ADMIN_EMAIL: ${NEXAMIND_ADMIN_EMAIL:-admin@nexamind.local}
+      NEXAMIND_ADMIN_PASSWORD: ${NEXAMIND_ADMIN_PASSWORD:-admin123}
+      NEXAMIND_ADMIN_NICKNAME: ${NEXAMIND_ADMIN_NICKNAME:-NexaMind管理员}
+      NEXAMIND_TEST_ENABLED: ${NEXAMIND_TEST_ENABLED:-true}
+      NEXAMIND_TEST_EMAIL: ${NEXAMIND_TEST_EMAIL:-test@nexamind.local}
+      NEXAMIND_TEST_PASSWORD: ${NEXAMIND_TEST_PASSWORD:-test123}
       
       # 消息队列配置
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
@@ -133,7 +133,7 @@ services:
       - "${BACKEND_PORT:-8088}:8088"
       - "${DEBUG_PORT:-5005}:5005"  # 调试端口（仅开发环境）
     networks:
-      - agentx-network
+      - nexamind-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -149,12 +149,12 @@ services:
     #   retries: 5
     #   start_period: 60s
 
-  # AgentX前端服务
-  agentx-frontend:
+  # NexaMind前端服务
+  nexamind-frontend:
     build:
       context: ..
       dockerfile: docker/frontend/Dockerfile${DOCKERFILE_SUFFIX:-}
-    container_name: agentx-frontend
+    container_name: nexamind-frontend
     environment:
       # API配置
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080/api}
@@ -165,9 +165,9 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     networks:
-      - agentx-network
+      - nexamind-network
     depends_on:
-      - agentx-backend
+      - nexamind-backend
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
@@ -180,13 +180,13 @@ services:
   # 数据库管理工具（仅开发环境）
   adminer:
     image: adminer:4-standalone
-    container_name: agentx-adminer
+    container_name: nexamind-adminer
     profiles:
       - dev
     ports:
       - "8082:8080"
     networks:
-      - agentx-network
+      - nexamind-network
     depends_on:
       - postgres
     restart: unless-stopped
@@ -194,7 +194,7 @@ services:
   # API Premium Gateway 高可用网关服务
   api-gateway:
     image: ghcr.io/lucky-aeon/api-premium-gateway:latest
-    container_name: agentx-api-gateway
+    container_name: nexamind-api-gateway
     profiles:
       - local
       - production
@@ -203,7 +203,7 @@ services:
     volumes:
       - gateway-logs:/app/logs
     networks:
-      - agentx-network
+      - nexamind-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8081/api/health || exit 1"]

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AgentX本地开发环境启动脚本
+# NexaMind本地开发环境启动脚本
 # 专用于开发者进行本地开发和调试
 
 set -e
@@ -64,7 +64,7 @@ prepare_env() {
 
 # 启动服务
 start_services() {
-    echo -e "${BLUE}启动AgentX服务...${NC}"
+    echo -e "${BLUE}启动NexaMind服务...${NC}"
     echo "部署模式: $MODE"
     echo
 
@@ -75,7 +75,7 @@ start_services() {
     docker compose --profile local --profile dev up -d --build
 
     echo
-    echo -e "${GREEN}🎉 AgentX启动完成！${NC}"
+    echo -e "${GREEN}🎉 NexaMind启动完成！${NC}"
     echo
     echo -e "${BLUE}服务访问地址:${NC}"
     echo "  前端: http://localhost:3000"
@@ -88,10 +88,10 @@ start_services() {
     
     echo
     echo -e "${BLUE}默认登录账号:${NC}"
-    echo "  管理员: admin@agentx.ai / admin123"
+    echo "  管理员: admin@nexamind.local / admin123"
     
     if [ "$MODE" = "local" ] || [ "$MODE" = "dev" ]; then
-        echo "  测试用户: test@agentx.ai / test123"
+        echo "  测试用户: test@nexamind.local / test123"
     fi
     
     echo
@@ -106,7 +106,7 @@ start_services() {
 main() {
     check_docker
     
-    echo -e "${YELLOW}AgentX 开发环境启动${NC}"
+    echo -e "${YELLOW}NexaMind 开发环境启动${NC}"
     echo "本脚本适用于开发者进行本地开发"
     echo "如需生产环境部署，请参考: docs/deployment/PRODUCTION_DEPLOY.md"
     echo

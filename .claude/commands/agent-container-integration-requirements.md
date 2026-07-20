@@ -2,7 +2,7 @@
 
 ## 项目背景
 
-AgentX平台已完成基础的容器管理功能，现需要将容器管理与Agent对话流程进行深度集成，实现用户工具的自动化部署和管理。
+NexaMind平台已完成基础的容器管理功能，现需要将容器管理与Agent对话流程进行深度集成，实现用户工具的自动化部署和管理。
 
 ## 已完成功能
 
@@ -1460,7 +1460,7 @@ mcp:
 container:
   management:
     # 用户容器默认镜像
-    default-image: ${USER_CONTAINER_DEFAULT_IMAGE:agentx/user-mcp-gateway:latest}
+    default-image: ${USER_CONTAINER_DEFAULT_IMAGE:nexamind/user-mcp-gateway:latest}
     # 端口分配范围
     port-range:
       start: ${CONTAINER_PORT_RANGE_START:30000}

@@ -1,17 +1,17 @@
-# AgentX前端生产环境Dockerfile
+# NexaMind前端生产环境Dockerfile
 FROM node:18-alpine as builder
 
 # 设置工作目录
 WORKDIR /app
 
 # 复制package文件
-COPY agentx-frontend-plus/package*.json ./
+COPY nexamind-frontend/package*.json ./
 
 # 安装依赖（使用legacy-peer-deps）
 RUN npm ci --legacy-peer-deps --only=production
 
 # 复制源代码
-COPY agentx-frontend-plus/ .
+COPY nexamind-frontend/ .
 
 # 构建应用
 RUN npm run build

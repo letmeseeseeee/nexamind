@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 日志使用中文
 ## Project Architecture
 
-AgentX is an intelligent agent platform built with Domain-Driven Design (DDD) architecture, featuring:
+NexaMind is an intelligent agent platform built with Domain-Driven Design (DDD) architecture, featuring:
 
 **Backend (Java/Spring Boot)**:
 - **Domain Layer**: Core business logic with entities, repositories, and domain services
@@ -30,7 +30,7 @@ AgentX is an intelligent agent platform built with Domain-Driven Design (DDD) ar
 ### Backend (Java/Spring Boot)
 ```bash
 # Navigate to backend directory
-cd AgentX
+cd NexaMind
 
 # 使用 mvn的方式运行 maven 命令
 ./mvn spring-boot:run
@@ -48,7 +48,7 @@ cd AgentX
 ### Frontend (Next.js)
 ```bash
 # Navigate to frontend directory  
-cd agentx-frontend-plus
+cd nexamind-frontend
 
 # Install dependencies
 npm install --legacy-peer-deps
@@ -373,8 +373,8 @@ export class ExampleApiService {
 - **Database**: localhost:5432
 
 ## Default Credentials
-- **Admin**: admin@agentx.ai / admin123
-- **Test User**: test@agentx.ai / test123
+- **Admin**: admin@nexamind.local / admin123
+- **Test User**: test@nexamind.local / test123
 
 ## Testing Guidelines
 

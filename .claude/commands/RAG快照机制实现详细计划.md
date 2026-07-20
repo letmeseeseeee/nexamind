@@ -23,7 +23,7 @@
 ### 第一步：创建用户级快照表
 
 #### 1.1 创建数据库表
-**文件位置**：`/AgentX/src/main/resources/db/migration/V20250722_001__add_user_rag_snapshot_tables.sql`
+**文件位置**：`/NexaMind/src/main/resources/db/migration/V20250722_001__add_user_rag_snapshot_tables.sql`
 
 ```sql
 -- 用户RAG文件快照表
@@ -70,7 +70,7 @@ CREATE TABLE user_rag_documents (
 ```
 
 #### 1.2 创建实体类
-**文件位置**：`/AgentX/src/main/java/org/xhy/domain/rag/model/UserRagFileEntity.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/domain/rag/model/UserRagFileEntity.java`
 
 ```java
 @TableName("user_rag_files")
@@ -89,7 +89,7 @@ public class UserRagFileEntity extends BaseEntity implements Serializable {
 }
 ```
 
-**文件位置**：`/AgentX/src/main/java/org/xhy/domain/rag/model/UserRagDocumentEntity.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/domain/rag/model/UserRagDocumentEntity.java`
 
 ```java
 @TableName("user_rag_documents")
@@ -107,13 +107,13 @@ public class UserRagDocumentEntity extends BaseEntity implements Serializable {
 ```
 
 #### 1.3 创建Repository接口
-**文件位置**：`/AgentX/src/main/java/org/xhy/domain/rag/repository/UserRagFileRepository.java`
-**文件位置**：`/AgentX/src/main/java/org/xhy/domain/rag/repository/UserRagDocumentRepository.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/domain/rag/repository/UserRagFileRepository.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/domain/rag/repository/UserRagDocumentRepository.java`
 
 ### 第二步：修改安装逻辑
 
 #### 2.1 修改UserRagDomainService.installRag()方法
-**文件位置**：`/AgentX/src/main/java/org/xhy/domain/rag/service/UserRagDomainService.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/domain/rag/service/UserRagDomainService.java`
 
 **修改逻辑**：
 ```java
@@ -148,7 +148,7 @@ private void copyVersionSnapshotToUser(String userRagId, String ragVersionId) {
 ```
 
 #### 2.2 新增UserRagSnapshotService
-**文件位置**：`/AgentX/src/main/java/org/xhy/domain/rag/service/UserRagSnapshotService.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/domain/rag/service/UserRagSnapshotService.java`
 
 ```java
 @Service
@@ -200,7 +200,7 @@ public class UserRagSnapshotService {
 ### 第三步：修改数据访问逻辑
 
 #### 3.1 完善RagDataAccessService
-**文件位置**：`/AgentX/src/main/java/org/xhy/domain/rag/service/RagDataAccessService.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/domain/rag/service/RagDataAccessService.java`
 
 **修改现有方法实现**：
 ```java
@@ -262,7 +262,7 @@ private List<DocumentUnitEntity> getUserSnapshotDocuments(String userRagId) {
 ### 第四步：修改显示逻辑
 
 #### 4.1 扩展UserRagDTO
-**文件位置**：`/AgentX/src/main/java/org/xhy/application/rag/dto/UserRagDTO.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/application/rag/dto/UserRagDTO.java`
 
 ```java
 /** 安装类型 */
@@ -282,7 +282,7 @@ public boolean isSnapshotType() {
 ```
 
 #### 4.2 修改UserRagAssembler
-**文件位置**：`/AgentX/src/main/java/org/xhy/application/rag/assembler/UserRagAssembler.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/application/rag/assembler/UserRagAssembler.java`
 
 ```java
 /** Convert Entity to DTO using BeanUtils */
@@ -339,7 +339,7 @@ public static UserRagDTO enrichWithSnapshotInfo(UserRagEntity entity, Integer fi
 ```
 
 #### 4.3 修改RagMarketAppService
-**文件位置**：`/AgentX/src/main/java/org/xhy/application/rag/RagMarketAppService.java`
+**文件位置**：`/NexaMind/src/main/java/org/xhy/application/rag/RagMarketAppService.java`
 
 ```java
 /** 获取用户安装的RAG列表 */
@@ -454,7 +454,7 @@ private Integer getUserRagDocumentCount(String userRagId) {
 ### 第七步：前端适配
 
 #### 7.1 更新类型定义
-**文件位置**：`/agentx-frontend-plus/types/rag-publish.ts`
+**文件位置**：`/nexamind-frontend/types/rag-publish.ts`
 ```typescript
 export interface UserRag {
   // 现有字段...

@@ -1,17 +1,17 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `AgentX` — Spring Boot (Java 17) backend. Source in `AgentX/src/main`, tests in `AgentX/src/test`. Built with Maven Wrapper (`./mvnw`).
-- `agentx-frontend-plus` — Next.js 15 + TypeScript UI. App routes under `app/`, shared UI in `components/`.
+- `NexaMind` — Spring Boot (Java 17) backend. Source in `NexaMind/src/main`, tests in `NexaMind/src/test`. Built with Maven Wrapper (`./mvnw`).
+- `nexamind-frontend` — Next.js 15 + TypeScript UI. App routes under `app/`, shared UI in `components/`.
 - Deployment & ops: `deploy/` (Docker Compose scripts), `docker/`, `docs/`, `config/`, `production/`. Logs in `logs/`.
 
 ## Build, Test, and Development Commands
-- Backend (from `AgentX`):
+- Backend (from `NexaMind`):
   - Build: `./mvnw -DskipTests package`
   - Run (dev): `./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`
   - Test: `./mvnw test`
   - Format: `./mvnw spotless:apply`
-- Frontend (from `agentx-frontend-plus`):
+- Frontend (from `nexamind-frontend`):
   - Install deps: `npm install` (or `pnpm install`)
   - Dev server: `npm run dev` (http://localhost:3000)
   - Build/Start: `npm run build && npm start`
@@ -19,12 +19,12 @@
 - All‑in‑one (Docker): `cd deploy && ./start.sh` to spin up backend, frontend, DB, MQ.
 
 ## Coding Style & Naming Conventions
-- Java (backend): formatted via Spotless using `AgentX/eclipse-formatter.xml`. 4‑space indent, PascalCase classes, camelCase methods/fields, packages start with `org.xhy.*`.
+- Java (backend): formatted via Spotless using `NexaMind/eclipse-formatter.xml`. 4‑space indent, PascalCase classes, camelCase methods/fields, packages start with `org.xhy.*`.
 - TypeScript/React (frontend): 2‑space indent, React components PascalCase, files kebab‑case (e.g., `model-select-dialog.tsx`). Keep hooks in `hooks/`, UI in `components/`.
 - Run linters/formatters before pushing; keep functions small and cohesive.
 
 ## Testing Guidelines
-- Backend: JUnit via Spring Boot starter. Place tests under `AgentX/src/test/java`, name `*Test.java`. Run with `./mvnw test` and target service/controller layers.
+- Backend: JUnit via Spring Boot starter. Place tests under `NexaMind/src/test/java`, name `*Test.java`. Run with `./mvnw test` and target service/controller layers.
 - Frontend: No default test runner configured; for UI changes include a minimal test plan or interactive demo steps in the PR.
 
 ## Commit & Pull Request Guidelines
