@@ -145,7 +145,7 @@ export function NavigationBar() {
           <span className="hidden font-bold sm:inline-block">NexaMind</span>
         </Link>
         <div className="flex flex-1 items-center justify-between">
-          <nav className="flex items-center space-x-6">
+          <nav className="hidden items-center space-x-6 md:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}

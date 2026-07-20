@@ -1,5 +1,6 @@
 package org.xhy.infrastructure.config;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -12,8 +13,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConfigurationProperties(prefix = "nexamind.container")
 public class ContainerConfig {
 
+    private static final String WINDOWS_DOCKER_HOST = "npipe:////./pipe/dockerDesktopLinuxEngine";
+    private static final String UNIX_DOCKER_HOST = "unix:///var/run/docker.sock";
+
     /** Docker连接配置 */
-    @Value("${nexamind.container.docker-host:${NEXAMIND_CONTAINER_DOCKER_HOST:unix:///var/run/docker.sock}}")
+    @Value("${nexamind.container.docker-host:${NEXAMIND_CONTAINER_DOCKER_HOST:}}")
     private String dockerHost;
 
     /** 用户数据卷基础路径 */
@@ -27,6 +31,15 @@ public class ContainerConfig {
 
     /** 资源使用率更新间隔（毫秒） */
     private long statsUpdateInterval = 120000; // 2分钟
+
+    @PostConstruct
+    public void applyPlatformDockerHost() {
+        if (dockerHost == null || dockerHost.isBlank()) {
+            dockerHost = System.getProperty("os.name", "").toLowerCase().contains("win")
+                    ? WINDOWS_DOCKER_HOST
+                    : UNIX_DOCKER_HOST;
+        }
+    }
 
     public String getDockerHost() {
         return dockerHost;

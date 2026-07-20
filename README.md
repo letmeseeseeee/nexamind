@@ -6,19 +6,13 @@
 
 NexaMind 是一个基于大语言模型、RAG 和 MCP 的智能体应用平台。平台采用 Java 17、Spring Boot、LangChain4j 与 DDD 分层架构实现后端，使用 Next.js 和 TypeScript 构建管理界面，并通过 PostgreSQL、pgvector、RabbitMQ 与 Docker Compose 提供知识检索、异步处理和本地部署能力。
 
-## 二次开发说明
+## 项目亮点
 
-本项目基于开源项目 [lucky-aeon/AgentX](https://github.com/lucky-aeon/AgentX) 进行学习和二次开发，遵循 Apache License 2.0。上游作者和贡献者保留其原始代码版权。
-
-当前仓库完成了以下工程工作：
-
-- 将产品、Java 启动类、Maven 坐标、前后端目录和运行配置统一重构为 NexaMind。
-- 将 Docker 服务、容器、网络、数据库默认值及环境变量前缀统一为 `nexamind` / `NEXAMIND_`。
-- 重构 Markdown 分割测试数据，使用独立的架构样例和 classpath 资源加载方式。
-- 整理 Agent 创建链路、Docker Desktop 与 WSL2 调试过程及项目学习材料。
-- 替换原界面品牌资产，补充 NexaMind 独立标识和个人仓库部署配置。
-
-详细归属和修改范围见 [NOTICE.md](NOTICE.md)。
+- 使用 DDD 分层组织 Agent、模型、工具、知识库、会话和计费等核心领域，明确接口、应用、领域与基础设施职责。
+- 打通 Agent 从创建、配置、调试、发布到运行追踪的完整生命周期，支持多模型供应商、MCP 工具和容器隔离。
+- 构建 RAG 知识处理链路，覆盖文档解析、分段、Embedding、pgvector 检索、HyDE、Rerank 与流式回答。
+- 提供 Docker Compose 本地环境与生产部署配置，统一数据库、消息队列、对象存储、前端和后端服务。
+- 配套 Agent 创建流程图、Docker Desktop 调试记录和基础知识学习资料，便于理解系统设计与排查运行环境。
 
 ## 核心能力
 
@@ -99,6 +93,14 @@ Windows 也可以在 `deploy` 目录运行：
 
 ## 本地开发
 
+Windows 本地一键启动（项目位于 F 盘时，Maven/npm 缓存、临时文件和运行日志也保存在项目目录）：
+
+```powershell
+.\deploy\start-local.ps1
+```
+
+脚本会启动 PostgreSQL、RabbitMQ、API Gateway、Adminer、后端与前端。项目级缓存、临时文件和日志位于 `.local/`，不会提交到 Git；Docker Desktop 的 VHDX 数据位置仍由 Docker Desktop 设置管理。
+
 后端：
 
 ```powershell
@@ -153,4 +155,4 @@ docker compose --profile local --profile dev config
 
 ## 许可证
 
-本项目按照 [Apache License 2.0](LICENSE) 发布。使用和分发衍生版本时，请保留许可证、版权和上游归属说明。
+本项目按照 [Apache License 2.0](LICENSE) 发布。版权与第三方项目归属见 [NOTICE.md](NOTICE.md)。

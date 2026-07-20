@@ -109,10 +109,10 @@ export default function ExplorePage() {
       <Sidebar />
 
       {/* 右侧内容区域 */}
-      <div className="flex-1 overflow-auto">
-        <div className="container py-6 px-4">
+      <div className="min-w-0 flex-1 overflow-auto">
+        <div className="container px-4 py-5 sm:px-6 sm:py-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-blue-600">探索 NexaMind 的应用</h1>
+            <h1 className="text-xl font-bold text-blue-600 sm:text-2xl">探索 NexaMind 的应用</h1>
             <p className="text-muted-foreground mt-1">使用这些模板应用程序，或根据模板自定义您自己的应用程序。</p>
           </div>
 

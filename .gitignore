@@ -133,6 +133,7 @@ logs/
 # Local assistant settings and private resume drafts
 **/.claude/settings.local.json
 docs/resume-*.txt
+.local/
 
 # System Files
 .DS_Store

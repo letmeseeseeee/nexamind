@@ -173,7 +173,7 @@ payment:
 # 容器管理配置
 nexamind:
   container:
-    docker-host: ${NEXAMIND_CONTAINER_DOCKER_HOST:unix:///var/run/docker.sock}
+    docker-host: ${NEXAMIND_CONTAINER_DOCKER_HOST:}
     user-volume-base-path: ${NEXAMIND_CONTAINER_USER_VOLUME_PATH:/docker/users}
     default-mcp-gateway-image: ${NEXAMIND_CONTAINER_DEFAULT_MCP_IMAGE:ghcr.io/lucky-aeon/mcp-gateway:latest}
     monitor-interval: ${NEXAMIND_CONTAINER_MONITOR_INTERVAL:300000}

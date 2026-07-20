@@ -73,6 +73,11 @@ public class DockerService {
             diagnosis.append("\n2. 检查socket文件权限: ls -la /var/run/docker.sock");
             diagnosis.append("\n3. 在容器环境中，确保挂载了Docker socket: -v /var/run/docker.sock:/var/run/docker.sock");
             diagnosis.append("\n4. 检查用户组权限: sudo usermod -aG docker $USER");
+        } else if (dockerHost.startsWith("npipe://")) {
+            diagnosis.append("\n可能的解决方案:");
+            diagnosis.append("\n1. 检查Docker Desktop是否已启动: docker info");
+            diagnosis.append("\n2. 检查Docker上下文: docker context inspect");
+            diagnosis.append("\n3. 确认Linux Engine命名管道可用: \\.\\pipe\\dockerDesktopLinuxEngine");
         } else if (dockerHost.startsWith("tcp://")) {
             diagnosis.append("\n可能的解决方案:");
             diagnosis.append("\n1. 检查Docker daemon TCP端口是否开启");
