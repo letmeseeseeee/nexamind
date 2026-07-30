@@ -6,6 +6,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import org.xhy.infrastructure.llm.http.Utf8HttpClientBuilder;
 import org.xhy.infrastructure.llm.config.ProviderConfig;
 import org.xhy.infrastructure.llm.protocol.enums.ProviderProtocol;
 
@@ -20,6 +21,7 @@ public class LLMProviderFactory {
         ChatModel model = null;
         if (protocol == ProviderProtocol.OPENAI) {
             OpenAiChatModel.OpenAiChatModelBuilder openAiChatModelBuilder = new OpenAiChatModel.OpenAiChatModelBuilder();
+            openAiChatModelBuilder.httpClientBuilder(new Utf8HttpClientBuilder());
             openAiChatModelBuilder.apiKey(providerConfig.getApiKey());
             openAiChatModelBuilder.baseUrl(providerConfig.getBaseUrl());
             openAiChatModelBuilder.customHeaders(providerConfig.getCustomHeaders());
@@ -36,7 +38,8 @@ public class LLMProviderFactory {
     public static StreamingChatModel getLLMProviderByStream(ProviderProtocol protocol, ProviderConfig providerConfig) {
         StreamingChatModel model = null;
         if (protocol == ProviderProtocol.OPENAI) {
-            model = new OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder().apiKey(providerConfig.getApiKey())
+            model = new OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder()
+                    .httpClientBuilder(new Utf8HttpClientBuilder()).apiKey(providerConfig.getApiKey())
                     .baseUrl(providerConfig.getBaseUrl()).customHeaders(providerConfig.getCustomHeaders())
                     .modelName(providerConfig.getModel()).timeout(Duration.ofHours(1)).build();
         } else if (protocol == ProviderProtocol.ANTHROPIC) {

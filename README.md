@@ -12,7 +12,7 @@ NexaMind 是一个基于大语言模型、RAG 和 MCP 的智能体应用平台�
 - 打通 Agent 从创建、配置、调试、发布到运行追踪的完整生命周期，支持多模型供应商、MCP 工具和容器隔离。
 - 构建 RAG 知识处理链路，覆盖文档解析、分段、Embedding、pgvector 检索、HyDE、Rerank 与流式回答。
 - 提供 Docker Compose 本地环境与生产部署配置，统一数据库、消息队列、对象存储、前端和后端服务。
-- 配套 Agent 创建流程图、Docker Desktop 调试记录和基础知识学习资料，便于理解系统设计与排查运行环境。
+- 配套 Agent 创建流程图、Docker Desktop 与 DeepSeek SSE 调试记录和基础知识学习资料，便于理解系统设计与排查运行环境。
 
 ## 核心能力
 
@@ -152,6 +152,7 @@ docker compose --profile local --profile dev config
 - [容器管理设计](NexaMind/docs/container-management.md)
 - [长期记忆表结构](NexaMind/docs/memory_schema.md)
 - [Docker Desktop 与 WSL2 调试记录](docs/docker-desktop-wsl2-debug-record-2026-05-18.zh-CN.md)
+- [DeepSeek SSE 中文乱码调试记录](docs/deepseek-sse-utf8-debug-record-2026-07-31.zh-CN.md)
 
 ## 许可证
 
