@@ -14,11 +14,11 @@ import org.xhy.infrastructure.rag.factory.EmbeddingModelFactory;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /** 混合检索领域服务 协调向量检索和关键词检索，实现RRF融合算法
- * 
- * @author claude */
+ */
 @Service
 public class HybridSearchDomainService {
 
@@ -29,6 +29,11 @@ public class HybridSearchDomainService {
 
     /** 并行检索的超时时间（秒） */
     private static final int SEARCH_TIMEOUT_SECONDS = 30;
+
+    /** 原查询保留精确语义，HyDE 作为扩展召回信号，避免生成内容反客为主。 */
+    private static final double ORIGINAL_VECTOR_WEIGHT = 1.0;
+    private static final double HYDE_VECTOR_WEIGHT = 0.8;
+    private static final double KEYWORD_WEIGHT = 1.0;
 
     private final EmbeddingDomainService embeddingDomainService;
     private final KeywordSearchDomainService keywordSearchDomainService;
@@ -67,61 +72,53 @@ public class HybridSearchDomainService {
         // 设置默认值
         int finalMaxResults = config.getMaxResults() != null ? Math.min(config.getMaxResults(), 100) : 15;
         Double finalMinScore = config.getMinScore() != null ? Math.max(0.0, Math.min(config.getMinScore(), 1.0)) : 0.7;
+        boolean enableRerank = Boolean.TRUE.equals(config.getEnableRerank());
+        int candidateMultiplier = config.getCandidateMultiplier() != null
+                ? Math.max(1, Math.min(config.getCandidateMultiplier(), 5))
+                : 2;
+        int fusionLimit = enableRerank ? Math.min(100, finalMaxResults * candidateMultiplier) : finalMaxResults;
 
         long startTime = System.currentTimeMillis();
 
         try {
-            log.info("开始混合搜索 查询: '{}', 数据集: {}, 最大结果数: {}, HyDE可用: {}", config.getQuestion(),
+            String originalQuery = config.getQuestion().trim();
+            log.info("开始混合搜索 查询: '{}', 数据集: {}, 最大结果数: {}, HyDE可用: {}", originalQuery,
                     config.getDataSetIds().size(), finalMaxResults, config.hasValidChatModelConfig());
 
-            // HyDE处理：生成假设文档用于向量检索
-            String hypotheticalDocument = hydeDomainService.generateHypotheticalDocument(config.getQuestion(),
-                    config.getChatModelConfig());
-            config.setQuestion(hypotheticalDocument);
+            CompletableFuture<List<VectorStoreResult>> originalVectorFuture = searchAsync("原查询向量搜索",
+                    () -> embeddingDomainService.vectorSearch(config.getDataSetIds(), originalQuery, fusionLimit,
+                            finalMinScore, false, candidateMultiplier, config.getEmbeddingConfig()));
 
-            CompletableFuture<List<VectorStoreResult>> vectorSearchFuture = CompletableFuture
-                    .supplyAsync(() -> embeddingDomainService.vectorSearch(config.getDataSetIds(), config.getQuestion(),
-                            finalMaxResults * 2, finalMinScore, false, config.getCandidateMultiplier(),
-                            config.getEmbeddingConfig()));
+            CompletableFuture<List<VectorStoreResult>> keywordSearchFuture = searchAsync("原查询关键词搜索",
+                    () -> keywordSearchDomainService.keywordSearch(config.getDataSetIds(), originalQuery,
+                            fusionLimit));
 
-            CompletableFuture<List<VectorStoreResult>> keywordSearchFuture = CompletableFuture
-                    .supplyAsync(() -> keywordSearchDomainService.keywordSearch(config.getDataSetIds(),
-                            config.getQuestion(), finalMaxResults * 2));
+            CompletableFuture<List<VectorStoreResult>> hydeVectorFuture = config.hasValidChatModelConfig()
+                    ? searchAsync("HyDE向量搜索", () -> searchByHypotheticalDocument(config, originalQuery,
+                            fusionLimit, finalMinScore, candidateMultiplier))
+                    : CompletableFuture.completedFuture(Collections.emptyList());
 
-            // 等待两个检索任务完成
-            List<VectorStoreResult> vectorResults = Collections.emptyList();
-            List<VectorStoreResult> keywordResults = Collections.emptyList();
+            List<VectorStoreResult> originalVectorResults = originalVectorFuture.join();
+            List<VectorStoreResult> hydeVectorResults = hydeVectorFuture.join();
+            List<VectorStoreResult> keywordResults = keywordSearchFuture.join();
 
-            try {
-                vectorResults = vectorSearchFuture.get(SEARCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                log.debug("向量搜索完成，找到{}个结果", vectorResults.size());
-            } catch (Exception e) {
-                log.warn("向量搜索失败或超时: {}", e.getMessage());
-            }
-
-            try {
-                keywordResults = keywordSearchFuture.get(SEARCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                log.debug("关键词搜索完成，找到{}个结果", keywordResults.size());
-            } catch (Exception e) {
-                log.warn("关键词搜索失败或超时: {}", e.getMessage());
-            }
-
-            // 如果两个检索都失败，返回空结果
-            if (vectorResults.isEmpty() && keywordResults.isEmpty()) {
-                log.warn("向量和关键词搜索对于查询'{}'都返回空结果", config.getQuestion());
+            if (originalVectorResults.isEmpty() && hydeVectorResults.isEmpty() && keywordResults.isEmpty()) {
+                log.warn("所有检索通道对于查询'{}'都返回空结果", originalQuery);
                 return Collections.emptyList();
             }
 
-            // 使用RRF算法融合结果
-            List<VectorStoreResult> fusedResults = fusionWithRRF(vectorResults, keywordResults, finalMaxResults);
+            List<VectorStoreResult> fusedResults = fusionWithRRF(originalVectorResults, hydeVectorResults,
+                    keywordResults, fusionLimit);
 
             // RRF融合后进行重排序（如果启用）
             List<VectorStoreResult> rerankedResults = fusedResults;
-            if (Boolean.TRUE.equals(config.getEnableRerank()) && !fusedResults.isEmpty()) {
-                rerankedResults = applyRerankToFusedResults(fusedResults, config.getQuestion());
+            if (enableRerank && !fusedResults.isEmpty()) {
+                rerankedResults = applyRerankToFusedResults(fusedResults, originalQuery);
             }
 
-            return convertToDocumentUnits(rerankedResults, config.getEnableQueryExpansion());
+            List<VectorStoreResult> finalResults = rerankedResults.stream().limit(finalMaxResults)
+                    .collect(Collectors.toList());
+            return convertToDocumentUnits(finalResults, config.getEnableQueryExpansion());
 
         } catch (Exception e) {
             long totalTime = System.currentTimeMillis() - startTime;
@@ -147,78 +144,88 @@ public class HybridSearchDomainService {
         return hybridSearch(config);
     }
 
-    /** 使用RRF算法融合向量检索和关键词检索结果 RRF公式：RRF(d) = Σ(1/(k + rank_i(d)))，其中k=60
-     * 
-     * @param vectorResults 向量检索结果
-     * @param keywordResults 关键词检索结果
-     * @param maxResults 最大返回结果数量
-     * @return 融合后的结果列表 */
-    private List<VectorStoreResult> fusionWithRRF(List<VectorStoreResult> vectorResults,
-            List<VectorStoreResult> keywordResults, int maxResults) {
+    private CompletableFuture<List<VectorStoreResult>> searchAsync(String searchName,
+            Supplier<List<VectorStoreResult>> searchTask) {
+        return CompletableFuture.supplyAsync(searchTask)
+                .completeOnTimeout(Collections.emptyList(), SEARCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .exceptionally(error -> {
+                    log.warn("{}失败: {}", searchName, error.getMessage());
+                    return Collections.emptyList();
+                }).thenApply(results -> {
+                    log.debug("{}完成，找到{}个结果", searchName, results.size());
+                    return results;
+                });
+    }
 
-        log.debug("开始RRF融合 向量: {}, 关键词: {} 结果", vectorResults.size(), keywordResults.size());
+    private List<VectorStoreResult> searchByHypotheticalDocument(HybridSearchConfig config, String originalQuery,
+            int maxResults, Double minScore, int candidateMultiplier) {
+        String hypotheticalDocument = hydeDomainService.generateHypotheticalDocument(originalQuery,
+                config.getChatModelConfig());
+        if (hypotheticalDocument == null || hypotheticalDocument.isBlank()
+                || originalQuery.equals(hypotheticalDocument.trim())) {
+            log.debug("HyDE未生成有效扩展，跳过重复向量搜索");
+            return Collections.emptyList();
+        }
 
-        // 存储每个文档的RRF分数
+        return embeddingDomainService.vectorSearch(config.getDataSetIds(), hypotheticalDocument.trim(), maxResults,
+                minScore, false, candidateMultiplier, config.getEmbeddingConfig());
+    }
+
+    /** 使用RRF算法融合原查询向量、HyDE向量和关键词结果。 */
+    private List<VectorStoreResult> fusionWithRRF(List<VectorStoreResult> originalVectorResults,
+            List<VectorStoreResult> hydeVectorResults, List<VectorStoreResult> keywordResults, int maxResults) {
+
+        log.debug("开始RRF融合 原查询向量: {}, HyDE向量: {}, 关键词: {} 结果", originalVectorResults.size(),
+                hydeVectorResults.size(), keywordResults.size());
+
         Map<String, Double> rrfScores = new HashMap<>();
         Map<String, VectorStoreResult> documentMap = new HashMap<>();
 
-        // 处理向量检索结果
-        for (int i = 0; i < vectorResults.size(); i++) {
-            VectorStoreResult result = vectorResults.get(i);
-            String documentId = result.getDocumentId();
+        accumulateRrfScores(originalVectorResults, ORIGINAL_VECTOR_WEIGHT, "OriginalVector", rrfScores, documentMap);
+        accumulateRrfScores(hydeVectorResults, HYDE_VECTOR_WEIGHT, "HyDEVector", rrfScores, documentMap);
+        accumulateRrfScores(keywordResults, KEYWORD_WEIGHT, "Keyword", rrfScores, documentMap);
 
-            if (documentId != null && !documentId.trim().isEmpty()) {
-                double rrfScore = 1.0 / (RRF_K + i + 1); // rank从1开始
-                rrfScores.put(documentId, rrfScores.getOrDefault(documentId, 0.0) + rrfScore);
-
-                // 保存文档信息（优先保留向量检索的结果）
-                if (!documentMap.containsKey(documentId)) {
-                    result.setSearchType(SearchType.HYBRID);
-                    documentMap.put(documentId, result);
-                }
-
-                log.debug("Vector result {}: docId={}, originalScore={}, rrfContribution={}", i + 1, documentId,
-                        result.getScore(), rrfScore);
-            }
-        }
-
-        // 处理关键词检索结果
-        for (int i = 0; i < keywordResults.size(); i++) {
-            VectorStoreResult result = keywordResults.get(i);
-            String documentId = result.getDocumentId();
-
-            if (documentId != null && !documentId.trim().isEmpty()) {
-                double rrfScore = 1.0 / (RRF_K + i + 1); // rank从1开始
-                rrfScores.put(documentId, rrfScores.getOrDefault(documentId, 0.0) + rrfScore);
-
-                // 如果向量检索中没有此文档，保存关键词检索的结果
-                if (!documentMap.containsKey(documentId)) {
-                    result.setSearchType(SearchType.HYBRID);
-                    documentMap.put(documentId, result);
-                }
-
-                log.debug("Keyword result {}: docId={}, originalScore={}, rrfContribution={}", i + 1, documentId,
-                        result.getScore(), rrfScore);
-            }
-        }
-
-        // 按RRF分数排序并返回
         List<VectorStoreResult> fusedResults = rrfScores.entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed()).limit(maxResults).map(entry -> {
-                    String documentId = entry.getKey();
-                    Double rrfScore = entry.getValue();
-                    VectorStoreResult result = documentMap.get(documentId);
-
-                    // 设置融合后的分数
-                    result.setScore(rrfScore);
-
-                    log.debug("Fused result: docId={}, finalRRFScore={}", documentId, rrfScore);
+                    VectorStoreResult result = documentMap.get(entry.getKey());
+                    result.setScore(entry.getValue());
                     return result;
                 }).collect(Collectors.toList());
 
         log.info("RRF融合完成: {}个唯一文档，选择前{}个", documentMap.size(), fusedResults.size());
-
         return fusedResults;
+    }
+
+    private void accumulateRrfScores(List<VectorStoreResult> results, double weight, String source,
+            Map<String, Double> rrfScores, Map<String, VectorStoreResult> documentMap) {
+        for (int i = 0; i < results.size(); i++) {
+            VectorStoreResult result = results.get(i);
+            String documentId = result.getDocumentId();
+            if (documentId == null || documentId.isBlank()) {
+                continue;
+            }
+
+            double rrfContribution = weight / (RRF_K + i + 1);
+            rrfScores.merge(documentId, rrfContribution, Double::sum);
+            documentMap.computeIfAbsent(documentId, key -> {
+                result.setSearchType(SearchType.HYBRID);
+                return result;
+            });
+            log.debug("{} result {}: docId={}, originalScore={}, rrfContribution={}", source, i + 1, documentId,
+                    result.getScore(), rrfContribution);
+        }
+    }
+
+    /** 使用RRF算法融合向量检索和关键词检索结果 RRF公式：RRF(d) = Σ(1/(k + rank_i(d)))，其中k=60
+     *
+     * @param vectorResults 向量检索结果
+     * @param keywordResults 关键词检索结果
+     * @param maxResults 最大返回结果数量
+     * @return 融合后的结果列表 */
+    @Deprecated
+    private List<VectorStoreResult> fusionWithRRF(List<VectorStoreResult> vectorResults,
+            List<VectorStoreResult> keywordResults, int maxResults) {
+        return fusionWithRRF(vectorResults, Collections.emptyList(), keywordResults, maxResults);
     }
 
     /** 将VectorStoreResult转换为DocumentUnitEntity 包括查询扩展逻辑
@@ -243,8 +250,8 @@ public class HybridSearchDomainService {
         }
 
         // 查询文档实体
-        List<DocumentUnitEntity> documents = documentUnitRepository
-                .selectList(Wrappers.lambdaQuery(DocumentUnitEntity.class).in(DocumentUnitEntity::getId, documentIds));
+        List<DocumentUnitEntity> documents = new ArrayList<>(documentUnitRepository
+                .selectList(Wrappers.lambdaQuery(DocumentUnitEntity.class).in(DocumentUnitEntity::getId, documentIds)));
 
         if (documents.isEmpty()) {
             log.warn("未找到文档ID对应的DocumentUnitEntity: {}", documentIds);
@@ -255,6 +262,10 @@ public class HybridSearchDomainService {
         Map<String, Double> scoreMap = vectorStoreResults.stream().collect(Collectors.toMap(
                 VectorStoreResult::getDocumentId, VectorStoreResult::getScore, (existing, replacement) -> existing // 保留第一个值，避免重复key
         ));
+        Map<String, Integer> rankMap = new HashMap<>();
+        for (int i = 0; i < vectorStoreResults.size(); i++) {
+            rankMap.putIfAbsent(vectorStoreResults.get(i).getDocumentId(), i);
+        }
 
         // 设置相似度分数
         documents.forEach(doc -> {
@@ -269,16 +280,8 @@ public class HybridSearchDomainService {
             documents = expandQueryResults(documents, scoreMap);
         }
 
-        // 按照原始RRF分数排序返回
-        documents.sort((a, b) -> {
-            Double scoreA = a.getSimilarityScore();
-            Double scoreB = b.getSimilarityScore();
-            if (scoreA == null)
-                scoreA = 0.0;
-            if (scoreB == null)
-                scoreB = 0.0;
-            return Double.compare(scoreB, scoreA); // 降序排序
-        });
+        // Repository返回顺序不稳定，显式恢复RRF/Rerank后的顺序。
+        documents.sort(Comparator.comparingInt(doc -> rankMap.getOrDefault(doc.getId(), Integer.MAX_VALUE)));
 
         log.debug("转换{}个VectorStoreResult为{}个DocumentUnitEntity", vectorStoreResults.size(), documents.size());
 

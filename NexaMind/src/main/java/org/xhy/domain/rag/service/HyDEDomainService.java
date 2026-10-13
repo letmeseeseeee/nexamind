@@ -15,8 +15,7 @@ import org.xhy.infrastructure.llm.config.ProviderConfig;
 import java.util.Arrays;
 
 /** HyDE（假设文档嵌入）领域服务 使用用户配置的LLM生成假设文档来改善RAG检索效果
- * 
- * @author claude */
+ */
 @Service
 public class HyDEDomainService {
 
@@ -32,7 +31,7 @@ public class HyDEDomainService {
             3.  **强制包含实体：** 在生成的摘要中，你必须多次使用或明确提及这些核心实体，确保摘要内容与实体紧密相关。
             4.  **融入通用概念：** 在此基础上，融入相关的通用核心概念、解决方案和专业术语，以丰富查询的语义。
 
-            你的输出将与原始查询拼接，共同用于向量检索。请直接生成摘要，不超过100字，不要提问。
+            你的输出将作为原始查询之外的独立向量检索通道。请直接生成摘要，不超过100字，不要提问。
             """;
 
     /** 生成假设文档 使用用户配置的LLM根据查询问题生成假设文档，用于改善向量检索效果
@@ -46,6 +45,10 @@ public class HyDEDomainService {
             return query;
         }
         String trimmedQuery = query.trim();
+        if (chatModelConfig == null) {
+            log.debug("未配置聊天模型，跳过HyDE");
+            return trimmedQuery;
+        }
 
         try {
             log.debug("开始HyDE生成，查询: '{}', 模型: {}", trimmedQuery, chatModelConfig.getModelEndpoint());
@@ -60,6 +63,10 @@ public class HyDEDomainService {
             // 直接生成假设文档
             ChatResponse response = chatModel.chat(Arrays.asList(systemMessage, userMessage));
             String hypotheticalDocument = response.aiMessage().text().trim();
+            if (!StringUtils.hasText(hypotheticalDocument)) {
+                log.warn("HyDE生成结果为空，回退到原始查询");
+                return trimmedQuery;
+            }
 
             log.info("HyDE生成成功，查询: '{}', 生成文档长度: {}", trimmedQuery, hypotheticalDocument.length());
 
