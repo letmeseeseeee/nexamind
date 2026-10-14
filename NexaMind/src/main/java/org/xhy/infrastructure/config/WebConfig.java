@@ -3,6 +3,7 @@ package org.xhy.infrastructure.config;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -14,12 +15,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @Value("${CORS_ALLOWED_ORIGINS:*}")
+    private String allowedOrigins;
+
     /** 配置CORS过滤器 */
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        // 允许所有来源
-        config.addAllowedOriginPattern("*");
+        for (String origin : allowedOrigins.split(",")) {
+            String trimmedOrigin = origin.trim();
+            if (!trimmedOrigin.isEmpty()) {
+                config.addAllowedOriginPattern(trimmedOrigin);
+            }
+        }
         // 允许携带认证信息
         config.setAllowCredentials(true);
         // 允许所有请求方法

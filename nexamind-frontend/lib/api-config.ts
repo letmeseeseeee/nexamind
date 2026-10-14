@@ -1,5 +1,10 @@
 // API地址配置 - 环境适配，开发环境直连，生产环境使用nginx代理
 function getDefaultApiUrl(): string {
+  const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '')
+  if (configuredUrl) {
+    return configuredUrl
+  }
+
   // 客户端环境
   if (typeof window !== 'undefined') {
     const { protocol, hostname } = window.location;
